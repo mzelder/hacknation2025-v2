@@ -18,5 +18,5 @@ class Anonimizer:
         return text
 
     def anonimize(self):
-        return RegexSet().re_email(self.text)
+        return RegexSet().re_bank_acc(self.text)
         
