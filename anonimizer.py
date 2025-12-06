@@ -18,6 +18,9 @@ class Anonimizer:
         return text
 
     def anonimize(self):
-        
-        return RegexSet().re_pesel(self.text)
+        res = [
+            RegexSet.re_pesel(self.text),
+            RegexSet.re_phone_number(self.text)
+        ]
+        return res
         
