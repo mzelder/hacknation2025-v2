@@ -1,3 +1,6 @@
+from regex_handler import RegexSet
+
+
 class Anonimizer:
     def __init__(self,  text=None, file_name=None):
         if text:
@@ -13,3 +16,8 @@ class Anonimizer:
 
     def load_text(self, text):
         return text
+
+    def anonimize(self):
+        
+        return RegexSet().re_pesel(self.text)
+        
