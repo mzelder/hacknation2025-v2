@@ -17,10 +17,9 @@ class Anonimizer:
     def load_text(self, text):
         return text
 
-    def anonimize(self):
-        res = [
-            RegexSet.re_pesel(self.text),
-            RegexSet.re_phone_number(self.text)
-        ]
-        return res
+    def find_all(self):
+        return RegexSet.run_all(self.text)
+    
+    def anonymize_text(self):
+        return RegexSet.replace_all(self.text)
         

@@ -1,9 +1,9 @@
 from anonimizer import Anonimizer
 
 def demo():
-	# Example: init from file
-	a1 = Anonimizer(file_name="anonymized.txt")
-	print(len((a1.anonimize())[1]))
+    a1 = Anonimizer(file_name="anonymized.txt")
+    result = a1.anonymize_text()
+    print((result))
 
 if __name__ == "__main__":
     demo()
