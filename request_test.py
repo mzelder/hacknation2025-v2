@@ -23,7 +23,7 @@ llm = ChatOpenAI(
 
 response = llm.invoke("""
 Jesteś systemem do anonimizacji danych wrażliwych w tekstach konwersacyjnych po polsku.
-Twoim zadaniem jest wspomóc tej anonymizacji, wskazując, które słowa trzeba zamienić na tokeny.
+Twoim zadaniem jest wspomóc tej anonimizacji, wskazując, które słowa trzeba zamienić na tokeny.
 
 
 TOKENY: 
