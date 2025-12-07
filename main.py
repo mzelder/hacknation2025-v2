@@ -1,7 +1,13 @@
 from anonimizer import Anonimizer
 
+
+text = '''
+12. Proszę podać adres e-mail, jeśli chcą Państwo otrzymać wyniki ankiety: grubacha@example.org   13. Proszę podać numer telefonu, jeśli chcą Państwo wziąć udział w losowaniu nagród: +48 799 759 030    Dziękujemy za udział w badaniu!
+Ankieta Bankowa: Doświadczenia Klientów w Korzystaniu z Usług Bankowych    A. Dane podstawowe   1. Proszę podać swoje imię: Marcelina   2. Proszę podać swoje nazwisko: Namysł   3. Proszę podać swoją datę urodzenia: 1944-1o-27   4. Proszę podać swój numer PESEL: 20291000583   5. Proszę podać swój adres zamieszkania: uł. Strażacka 49/36 41-280 Żywiec   6. Proszę podać swój numer telefonu: 22 8S1 68 05   7. Proszę podać swój adres e-mail: wieseaniela@example.net    B. Informacje o koncie bankowym   8. Czy posiada Pan/Pani konto bankowe w naszym banku? (Tak/Nie)   9. Proszę podać numer swojego konta bankowego (opcjonalnie): 44l9 5499 7170 8170   10. Czy korzysta Pan/Pani z karty kredytowej? Jeśli tak, proszę podać jej numer (opcjonalnie): 675948653729    C. Doświadczenia z usługami bankowymi   11. Jak często korzysta Pan/Pani z usług bankowości internetowej? (Codziennie/Kilka razy w tygodniu/Rzadziej)   12. Czy miał/a Pan/Pani jakiekolwiek problemy z dostępem do konta w ciągu ostatniego roku? (Tak/Nie)   13. Jak ocenia Pan/Pani jakość obsługi klienta w naszym banku? (Skala 1-5, gdzie 1 - bardzo słaba, 5 - bardzo dobra)    D. Dodatkowe informacje   14. Proszę podać nazwę swojego obecnego pracodawcy: FþUH Paprotny s.c.   15. Proszę podać swoje stanowisko pracy: inżynier    Dziękujemy za udział w naszej ankiecie!
+Ankieta Ubezpieczeniowa: Ocena Ryzyka i Potrzeb Klienta    A. Dane podstawowe   1. Imię i nazwisko: Cezary Szela   2. Data urodzenia: 1q84-01-10   3. Płeć: kobieta   4. Adres zamieszkania (ulica, miasto, kod pocztowy): al. Jałowcowa 688 11-527 Ciechanów   5. Numer telefonu kontaktowego: +4B 733 569 088   6. Adres e-mail: askrobot@example.net    B. Informacje o zatrudnieniu i sytuacji finansowej   7. Nazwa obecnego pracodawcy: Kudlak-Duszkiewicz S.A.   8. Stanowisko pracy: iluzjonista   9. Czy posiada Pan/Pani konto bankowe? Jeśli tak, proszę podać jego numer: 5201 3221 6170 7203   10. Czy korzysta Pan/Pani z karty kredytowej? Jeśli tak, proszę podać jej numer: 4T77024727033592    C. Stan zdrowia i historia medyczna   11. Czy cierpi Pan/Pani na jakiekolwiek przewlekłe choroby lub schorzenia? skręcenie   12. Czy w rodzinie występowały poważne choroby dziedziczne? Jeśli tak, proszę wskazać, u kogo: tat@ lęki   13. Czy przyjmuje Pan/Pani regularnie leki? Jeśli tak, proszę wymienić: choroba wątroby    D. Dodatkowe informacje   14. Numer PESEL: 76101264362   15. Numer dowodu osobistego: DH1971
+'''
 def main():
-    anon = Anonimizer(file_name="anonymized.txt")
+    anon = Anonimizer(text=text)
     result = anon.anonymize()
     print(result)
 

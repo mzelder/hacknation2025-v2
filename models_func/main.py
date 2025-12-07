@@ -112,7 +112,7 @@ def save_model(model, tokenizer, save_dir="./model_checkpoint"):
     os.makedirs(save_dir, exist_ok=True)
     model.save_pretrained(save_dir)
     tokenizer.save_pretrained(save_dir)
-    print(f"✓ Model saved to {save_dir}")
+    print(f"Model saved to {save_dir}")
     
 BATCH_SIZE = 4
 NUM_EPOCHS = 30
@@ -182,7 +182,7 @@ try:
             save_model(model, tokenizer, f"./checkpoint_epoch_{epoch + 1}")
             
 except KeyboardInterrupt:
-    print("\n\n⚠️  Training interrupted by user!")
+    print("\n\nTraining interrupted by user!")
     print("Saving model before exit...")
     save_model(model, tokenizer, "./model_interrupted")
     print("You can resume training later by loading from './model_interrupted'")
