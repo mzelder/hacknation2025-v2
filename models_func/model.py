@@ -3,8 +3,30 @@ import pickle
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 
 class Model:
+    """
+    NER-based text anonymization model for PII (Personally Identifiable Information) redaction.
+    
+    Detects and replaces sensitive entities (names, addresses, PESEL, etc.) with labels like [name], [pesel].
+    """
     @staticmethod
     def anonymize(regexed_text):
+        """
+        Anonymizes input text by replacing PII entities with standardized labels.
+        
+        Processes text line-by-line, detects sensitive entities using NER model,
+        and replaces them with labels like [name], [pesel], [address]. Non-sensitive
+        words (label '0') and continuation tokens (I-) are preserved or skipped.
+        
+        Args:
+            regexed_text (str): Multi-line input text containing potential PII
+            
+        Returns:
+            str: Anonymized text with all sensitive entities replaced by labels,
+                 flattened into single string with spaces
+            
+        Raises:
+            Exception: If NER prediction fails during processing
+        """
 
         all_texts = regexed_text.splitlines()
 
@@ -32,6 +54,18 @@ class Model:
     
     @staticmethod
     def predict_labels(text):
+        """
+        Predicts NER labels for tokens in input text using trained TokenClassification model.
+        
+        Tokenizes text, runs inference on GPU/CPU/MPS, maps predictions back to original
+        words using word_ids, and returns (token, label) pairs for B- entities only.
+        
+        Args:
+            text (str): Raw input text to analyze
+            
+        Returns:
+            list[tuple[str, str]]: List of (original_token, predicted_label) pairs.                               
+        """
         if torch.cuda.is_available():
             device = torch.device("cuda")
         elif torch.backends.mps.is_available():

@@ -106,7 +106,6 @@ def prepare_batch(batch_tokens, batch_labels, tokenizer, label2id, device, max_l
     }
 
 
-# ===== 4. SAVE MODEL FUNCTION =====
 def save_model(model, tokenizer, save_dir="./model_checkpoint"):
     """Save model and tokenizer."""
     os.makedirs(save_dir, exist_ok=True)
@@ -114,6 +113,7 @@ def save_model(model, tokenizer, save_dir="./model_checkpoint"):
     tokenizer.save_pretrained(save_dir)
     print(f"Model saved to {save_dir}")
     
+
 BATCH_SIZE = 4
 NUM_EPOCHS = 30
 
@@ -124,7 +124,6 @@ elif torch.backends.mps.is_available():
 else:
     device = torch.device("cpu")
     
-
 tokenizer = AutoTokenizer.from_pretrained("allegro/herbert-base-cased")
 
 model = AutoModelForTokenClassification.from_pretrained(
@@ -194,7 +193,7 @@ except Exception as e:
     raise
 
 else:
-    print("\n✓ Training completed successfully!")
+    print("\nTraining completed successfully!")
     save_model(model, tokenizer, "./model_final")
 
 print("\nTraining session ended.")
