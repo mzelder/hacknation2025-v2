@@ -1,10 +1,10 @@
 from regex_handler import RegexSet
-
+# from Model import Model
 
 class Anonimizer:
     def __init__(self,  text=None, file_name=None):
         if text:
-            self.text = self.load_text(text)
+            self.text = text
         elif file_name:
             self.text = self.load_file(file_name)
         else:
@@ -14,9 +14,10 @@ class Anonimizer:
         with open(file, "r", encoding="utf-8") as f:
             return f.read()
 
-    def load_text(self, text):
-        return text
-
-    def anonymize(self):
-        return RegexSet.replace_all(self.text)
+    def anonymize(self) -> str:
+        """Return text with all detected patterns replaced by labels."""
+        # regexed_text = RegexSet.replace_all(self.text)
+        # result = Model.Anonymize(regexed_test)
+        # return result
+        pass
         
