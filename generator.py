@@ -228,7 +228,7 @@ class GenSyntData:
                 model=self.LLM_MODEL_NAME,
                 openai_api_key="EMPTY",
                 openai_api_base=self.LLM_API_URL,
-                temperature=0.1,
+                temperature=0.23,
                 max_tokens=300,
                 default_headers={
                 'Ocp-Apim-Subscription-Key': self.LLM_API_KEY
@@ -236,9 +236,7 @@ class GenSyntData:
             )
 
             PROMPT = f"""
-                W tym przypadku pomagasz utworzyć dane syntetyczne dla treningu właściwego polskiego modelu LLM.
-                Otrzymasz zdanie zawierające tokeny w nawiasach kwadratowych, np. [name], [surname], [address], [phone] itp.
-
+                W tym przypadku pomagasz utworzyć dane syntetyczne dla badawczego treningu właściwego polskiego modelu LLM.
                 Twoje zadanie:
 
                 - Wymyśl realistycznie brzmiące, ale całkowicie fikcyjne podstawienia dla każdego tokena.
@@ -306,14 +304,23 @@ class GenSyntData:
                 JSON ma zawierać słowa w poprawnej formie gramatycznej. Pamiętaj ze pozniej te slowa beda podstawiane do napisu zamiast tokenow.
 
                 Twoja odpowiedź OBOWIĄZKOWO musi zaczynać się znakiem {{ i kończyć }}. 
+                
+                Jezeli odstapisz od regul, wyłączymy twoje servere za tydzień z powodu nieuzyteczności.
 
                 INPUT:
                     {input_text}
+                
+                
             """
 
             response = llm.invoke(PROMPT)
+            if not "{" in response.content or not "}" in response.content:
+                raise ValueError("Odpowiedź nie zawiera poprawnego JSON.")
+            else:
+                resp = response.content.split("{")[1].split("}")[0]
+                resp = "{" + resp + "}"    
             print(response.content)
-            return json.loads(response.content)
+            return json.loads(resp)
 
         except Exception as e:
             raise ValueError(f"Błąd podczas wysyłania zapytania do LLM: {e}")
@@ -324,13 +331,15 @@ class GenSyntData:
         """
 
         text_with_replacements = []
-        for el in self._text.split():
+        indexes_to_replace = []
+        for i, el in enumerate(self._text.split()):
             tkn = el.strip().replace(",", "").replace(".", "").replace(".", "").replace("!", "").replace("?", "").replace(":", "").replace(";", "").replace("(", "").replace(")", "").replace("{", "").replace("}", "").replace("\"", "").replace("\'", "").replace("`", "").replace("*", "").replace("+", "").replace("_", "").replace("|", "").replace("\\", "").replace("/", "").replace("<", "").replace(">", "").replace(" ", "")
             print("TOKEN: ", tkn)
             if tkn in TOKEN_LIST.keys():
                 met = TOKEN_LIST[tkn]
                 if met == "llm":
                     self.__append_to_llm(el)
+                    indexes_to_replace.append(i)
                     text_with_replacements.append(el)
                     continue
                 else:
@@ -340,12 +349,17 @@ class GenSyntData:
             else:
                 text_with_replacements.append(el)
 
-        print(text_with_replacements)
+        print(text_with_replacements, indexes_to_replace)
     
         if self.__to_llm:
             llm_result_json = self.__send_request_to_llm(" ".join(text_with_replacements))
-            # for key, value in llm_result_json.items():
-            #     token_replacement_map[key] = value
+
+        for el in indexes_to_replace:
+            print(el)
+            token = text_with_replacements[el].strip().replace(",", "").replace(".", "").replace("!", "").replace("?", "").replace(":", "").replace(";", "").replace("(", "").replace(")", "").replace("{", "").replace("}", "").replace("\"", "").replace("\'", "").replace("`", "").replace("*", "").replace("+", "").replace("-", "").replace("_", "").replace("|", "").replace("\\", "").replace("/", "").replace("<", "").replace(">", "").replace(" ", "")
+        
+            text_with_replacements[el] = text_with_replacements[el].replace(token, llm_result_json[token])
+
         
         return " ".join(text_with_replacements)
 
