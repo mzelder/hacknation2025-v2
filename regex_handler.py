@@ -23,7 +23,6 @@ REGEX_BANK_ACC = r"\b(?:[A-Za-z0-9!]{4}\s){3}[A-Za-z0-9!]{4}\b"
 class RegexSet:
     @staticmethod
     def all_patterns():
-        # Discover all globals named REGEX_*
         patterns = {}
         for name, value in globals().items():
             if name.startswith("REGEX_") and isinstance(value, str) and value:
