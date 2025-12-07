@@ -7,9 +7,8 @@ Ankieta Bankowa: Doświadczenia Klientów w Korzystaniu z Usług Bankowych    A.
 Ankieta Ubezpieczeniowa: Ocena Ryzyka i Potrzeb Klienta    A. Dane podstawowe   1. Imię i nazwisko: Cezary Szela   2. Data urodzenia: 1q84-01-10   3. Płeć: kobieta   4. Adres zamieszkania (ulica, miasto, kod pocztowy): al. Jałowcowa 688 11-527 Ciechanów   5. Numer telefonu kontaktowego: +4B 733 569 088   6. Adres e-mail: askrobot@example.net    B. Informacje o zatrudnieniu i sytuacji finansowej   7. Nazwa obecnego pracodawcy: Kudlak-Duszkiewicz S.A.   8. Stanowisko pracy: iluzjonista   9. Czy posiada Pan/Pani konto bankowe? Jeśli tak, proszę podać jego numer: 5201 3221 6170 7203   10. Czy korzysta Pan/Pani z karty kredytowej? Jeśli tak, proszę podać jej numer: 4T77024727033592    C. Stan zdrowia i historia medyczna   11. Czy cierpi Pan/Pani na jakiekolwiek przewlekłe choroby lub schorzenia? skręcenie   12. Czy w rodzinie występowały poważne choroby dziedziczne? Jeśli tak, proszę wskazać, u kogo: tat@ lęki   13. Czy przyjmuje Pan/Pani regularnie leki? Jeśli tak, proszę wymienić: choroba wątroby    D. Dodatkowe informacje   14. Numer PESEL: 76101264362   15. Numer dowodu osobistego: DH1971
 '''
 def main():
-    anon = Anonimizer(text=text)
-    result = anon.anonymize()
-    print(result)
+    anon = Anonimizer(file_name="anonymized.txt")
+    anon.anonymize_to_file("output.txt")
 
 if __name__ == "__main__":
     main()
