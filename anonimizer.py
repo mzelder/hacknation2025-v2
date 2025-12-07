@@ -17,7 +17,7 @@ class Anonimizer:
     def anonymize(self) -> str:
         """Return text with all detected patterns replaced by labels."""
         regexed_text = RegexSet.replace_all(self.text)
-        result = Model.anonymize(regexed_text)
+        result = Model().anonymize(regexed_text)
         return result
         
         

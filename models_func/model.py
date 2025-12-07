@@ -8,8 +8,28 @@ class Model:
     
     Detects and replaces sensitive entities (names, addresses, PESEL, etc.) with labels like [name], [pesel].
     """
-    @staticmethod
-    def anonymize(regexed_text):
+
+    def __init__(self):
+        self.device = self._select_device()
+        self.checkpoint_path = "models_func/checkpoint_epoch_11"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.checkpoint_path)
+        self.model = AutoModelForTokenClassification.from_pretrained(self.checkpoint_path).to(self.device)
+        self.model.eval()
+        
+        with open('models_func/label2id.pkl', 'rb') as f:
+            label2id = pickle.load(f)
+        self.id2label = {v: k for k, v in label2id.items()}
+    
+    def _select_device(self):
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            return torch.device("mps")
+        else:
+            return torch.device("cpu")
+
+    
+    def anonymize(self, regexed_text):
         """
         Anonymizes input text by replacing PII entities with standardized labels.
         
@@ -34,7 +54,7 @@ class Model:
         line, label = "", ""
         try:
             for line in all_texts:
-                result = Model.predict_labels(line)
+                result = self.predict_labels(line)
                 res_list = []
                 for token, label in result:
                     # print(token, label)
@@ -52,8 +72,8 @@ class Model:
         all_tokens = [token for line_tokens in predicted_lines for token in line_tokens]
         return " ".join(all_tokens)
     
-    @staticmethod
-    def predict_labels(text):
+    
+    def predict_labels(self, text):
         """
         Predicts NER labels for tokens in input text using trained TokenClassification model.
         
@@ -66,31 +86,14 @@ class Model:
         Returns:
             list[tuple[str, str]]: List of (original_token, predicted_label) pairs.                               
         """
-        if torch.cuda.is_available():
-            device = torch.device("cuda")
-        elif torch.backends.mps.is_available():
-            device = torch.device("mps")
-        else:
-            device = torch.device("cpu")
-
-
-        checkpoint_path = "models_func/checkpoint_epoch_11"
-
-        tokenizer = AutoTokenizer.from_pretrained(checkpoint_path)
-        model = AutoModelForTokenClassification.from_pretrained(checkpoint_path).to(device)
-        model.eval()
-
-        with open('models_func/label2id.pkl', 'rb') as f:
-            label2id = pickle.load(f)
-        id2label = {v: k for k, v in label2id.items()}
         tokens = text.split()
         
-        encoding = tokenizer(tokens, is_split_into_words=True, return_tensors="pt", truncation=True)
-        input_ids = encoding["input_ids"].to(device)
-        attention_mask = encoding["attention_mask"].to(device)
+        encoding = self.tokenizer(tokens, is_split_into_words=True, return_tensors="pt", truncation=True)
+        input_ids = encoding["input_ids"].to(self.device)
+        attention_mask = encoding["attention_mask"].to(self.device)
 
         with torch.no_grad():
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            outputs = self.model(input_ids=input_ids, attention_mask=attention_mask)
             predictions = outputs.logits.argmax(dim=-1).cpu().tolist()[0]
 
 
@@ -103,7 +106,7 @@ class Model:
 
             if word_idx != previous_word_idx:
                 label_id = predictions[idx]
-                predicted_labels.append((tokens[word_idx], id2label[label_id]))
+                predicted_labels.append((tokens[word_idx], self.id2label[label_id]))
             previous_word_idx = word_idx
 
         return predicted_labels
