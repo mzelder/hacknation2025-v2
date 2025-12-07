@@ -89,6 +89,8 @@ class GenSyntData:
         self.LLM_API_URL = os.getenv('LLM_API_URL', "https://apim-pllum-tst-pcn.azure-api.net/vllm/v1")
         self.LLM_MODEL_NAME = os.getenv('LLM_MODEL_NAME', "CYFRAGOVPL/pllum-12b-nc-chat-250715")
 
+        self.token_counter = {}
+
     def _register_methods(self):
         """
             Rejestruje metody generowania danych syntetycznych dla każdego tokenu.
@@ -228,89 +230,62 @@ class GenSyntData:
                 model=self.LLM_MODEL_NAME,
                 openai_api_key="EMPTY",
                 openai_api_base=self.LLM_API_URL,
-                temperature=0.23,
-                max_tokens=300,
+                temperature=0.2,
+                max_tokens=500,
                 default_headers={
                 'Ocp-Apim-Subscription-Key': self.LLM_API_KEY
                 }
             )
 
+            # print(self.__to_llm)
+
             PROMPT = f"""
                 W tym przypadku pomagasz utworzyć dane syntetyczne dla badawczego treningu właściwego polskiego modelu LLM.
                 Twoje zadanie:
 
-                - Wymyśl realistycznie brzmiące, ale całkowicie fikcyjne podstawienia dla każdego tokena.
+                - Wymyśl realistycznie brzmiące, ale całkowicie fikcyjne podstawienia dla każdego tokena, dopasowane do kontekstu.
                 - Zwróć wyłącznie poprawny JSON w formacie:
                     {{
-                        \"[token 1]\": \"dane_syntetyczne\", 
-                        \"[token 2]\": \"dane_syntetyczne\",
-                        \"[token 3]\": \"dane_syntetyczne\",
+                        \"[token 1]\": \"wymyslone dane_syntetyczne\", 
+                        \"[token 2]\": \"wymyslone dane_syntetyczne\",
                         ...
-                        \"[token n]\": \"dane_syntetyczne\"
+                        \"[token n]\": \"wymyslone dane_syntetyczne\"
                     }}
                 
                 - Klucze w JSON muszą być identyczne jak tokeny w nawiasach kwadratowych z tekstu wejściowego.
                 - Wartości nie mogą zawierać znaków nowej linii.
                 - Nie dodawaj żadnego dodatkowego tekstu poza JSON (bez wyjaśnień, komentarzy, znaczników markdown).
-                - Najpierw w myślach podstaw wymyślone dane w miejsce tokenów tak, aby całe zdanie było poprawne gramatycznie i logicznie po polsku.
+                - Najpierw w myślach podstaw wymyślone dane w miejsce tokenów tak, aby całe zdanie było poprawne gramatycznie i logicznie po polsku (zwracaj uwagę na plec i koncowki slów).
                 - Nie pokazuj tego zdania w odpowiedzi.
                 - Sprawdz, aby po podstawieniu danych syntetycznych, tekst był poprawny i logiczny. 
-                
-
-                LISTA TOKENÓW NA ZAMIANE:
-                    [{self.__to_llm}]
 
                 KORZYSTAJ WYŁĄCZNIE Z LISTY TOKENÓW NA ZAMIANE.
                 Nie wymyslaj nowych tokenow z kontekstu. 
+                LISTA TOKENÓW NA ZAMIANE:
+                    [{self.__to_llm}]
 
                 PRZYKŁAD:
                     INPUT:
-                        Nazywam się [name] [surname], mój PESEL to 12345678901. Mieszkam w [city] przy ulicy [address].
+                        Nazywam się [name] [surname], mój PESEL to 12345678901. Mieszkam w [city] przy ulicy [address]. Moj szef, [name_2] [surname_2] mnie lubi.
+                        Lista tokenów na zamianę: zaangażowaniu [name], zaangażowaniu [surname], w [city], przy [address], szef, [name_2], szef, [surname_2].
                     OUTPUT:
                         {{
-                            \"[name]\": \"Jan\",
-                            \"[surname]\": \"Kowalski\",
+                            \"[name]\": \"Jana\",
+                            \"[surname]\": \"Sobieskiego\",                            ,
                             \"[city]\": \"Warszawie\",
-                            \"[address]\": \"Długiej, 5\"
+                            \"[address]\": \"Długiej, 5\",
+                            \"[name_2]\": \"Jan\",
+                            \"[surname_2]\": \"Kowalski\",
                         }}
                 Zwróć wyłącznie poprawny JSON.
                 - Uwazaj na koncowki slów. One muszą byc w poprawnej formie.
 
-                Niepoprawnie:
-                    [address], [city].
-                    - 'na', '[address]', 'w', '[city].'
-                    
-                OUTPUT:
-                 {{
-                    \"[address]\": \"Długa, 5\",
-                    \"[city]\": \"Warszawa\"
-                 }}
+                W ODPOWIEDZI PODAJ WYŁĄCZNIE POPRAWNY JSON BEZ DODATKOWEGO TEKSTU. BEZ WYJASNIENIA, KOMENTARZY, ZNAKÓW MARKDOWN.
 
-                Poprawnie:
-                    [address], [city].
-                    - 'na', '[address]', 'w', '[city].'
-                    
-
-                OUTPUT:
-                 {{
-                    \"[address]\": \"Długiej, 5\",
-                    \"[city]\": \"Warszawie\"
-                 }}
-
-                W ODPOWIEDZI PODAJ WYŁĄCZNIE POPRAWNY JSON BEZ DODATKOWEGO TEKSTU.
-                
-                Tylko jeden JSON powinien byc generowany.
-
-                JSON ma zawierać słowa w poprawnej formie gramatycznej. Pamiętaj ze pozniej te slowa beda podstawiane do napisu zamiast tokenow.
-
-                Twoja odpowiedź OBOWIĄZKOWO musi zaczynać się znakiem {{ i kończyć }}. 
-                
-                Jezeli odstapisz od regul, wyłączymy twoje servere za tydzień z powodu nieuzyteczności.
-
-                INPUT:
+                Zapytanie:
                     {input_text}
                 
-                
+                Odpowiedź:
             """
 
             response = llm.invoke(PROMPT)
@@ -319,8 +294,11 @@ class GenSyntData:
             else:
                 resp = response.content.split("{")[1].split("}")[0]
                 resp = "{" + resp + "}"    
-            print(response.content)
-            return json.loads(resp)
+            # print(response.content)
+            try:
+                return json.loads(resp)
+            except Exception as e:
+                raise ValueError(f"Błąd podczas parsowania JSON: {e}")
 
         except Exception as e:
             raise ValueError(f"Błąd podczas wysyłania zapytania do LLM: {e}")
@@ -332,32 +310,41 @@ class GenSyntData:
 
         text_with_replacements = []
         indexes_to_replace = []
+        context_word = ""
         for i, el in enumerate(self._text.split()):
             tkn = el.strip().replace(",", "").replace(".", "").replace(".", "").replace("!", "").replace("?", "").replace(":", "").replace(";", "").replace("(", "").replace(")", "").replace("{", "").replace("}", "").replace("\"", "").replace("\'", "").replace("`", "").replace("*", "").replace("+", "").replace("_", "").replace("|", "").replace("\\", "").replace("/", "").replace("<", "").replace(">", "").replace(" ", "")
-            print("TOKEN: ", tkn)
+            # print("TOKEN: ", tkn)
             if tkn in TOKEN_LIST.keys():
                 met = TOKEN_LIST[tkn]
                 if met == "llm":
-                    self.__append_to_llm(el)
+                    self.token_counter[tkn] = self.token_counter.get(tkn, 0) + 1
+                    if self.token_counter.get(tkn) > 1:
+                        token_with_count = el.split("]")[0] + "_" + str(self.token_counter.get(tkn)) + "]" + el.split("]")[1]
+                    else:
+                        token_with_count = el
+                    self.__append_to_llm(context_word + token_with_count)
                     indexes_to_replace.append(i)
-                    text_with_replacements.append(el)
+                    text_with_replacements.append(token_with_count)
                     continue
                 else:
                     ret = self.__methods[met]()
                     if ret:
                         text_with_replacements.append(ret)
             else:
+                if "." in el:
+                    context_word = ""
+                else:
+                    context_word = el + " "
                 text_with_replacements.append(el)
 
-        print(text_with_replacements, indexes_to_replace)
+        # print(text_with_replacements, indexes_to_replace)
     
         if self.__to_llm:
             llm_result_json = self.__send_request_to_llm(" ".join(text_with_replacements))
 
         for el in indexes_to_replace:
-            print(el)
-            token = text_with_replacements[el].strip().replace(",", "").replace(".", "").replace("!", "").replace("?", "").replace(":", "").replace(";", "").replace("(", "").replace(")", "").replace("{", "").replace("}", "").replace("\"", "").replace("\'", "").replace("`", "").replace("*", "").replace("+", "").replace("-", "").replace("_", "").replace("|", "").replace("\\", "").replace("/", "").replace("<", "").replace(">", "").replace(" ", "")
-        
+            # print(el)
+            token = text_with_replacements[el].strip().replace(",", "").replace(".", "").replace("!", "").replace("?", "").replace(":", "").replace(";", "").replace("(", "").replace(")", "").replace("{", "").replace("}", "").replace("\"", "").replace("\'", "").replace("`", "").replace("*", "").replace("+", "").replace("|", "").replace("\\", "").replace("/", "").replace("<", "").replace(">", "").replace(" ", "")
             text_with_replacements[el] = text_with_replacements[el].replace(token, llm_result_json[token])
 
         

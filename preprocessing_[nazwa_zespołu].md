@@ -1,0 +1,1 @@
+## Opis przetwarzania, pozyskiwania danych
