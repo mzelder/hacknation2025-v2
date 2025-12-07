@@ -17,9 +17,6 @@ class Anonimizer:
     def load_text(self, text):
         return text
 
-    def find_all(self):
-        return RegexSet.run_all(self.text)
-    
-    def anonymize_text(self):
+    def anonymize(self):
         return RegexSet.replace_all(self.text)
         
